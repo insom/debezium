@@ -424,4 +424,14 @@ public class TableSchemaBuilderTest {
         assertThat(key2.fields().get(0).name()).isEqualTo("t2ID");
         assertThat(key2.fields().get(1).name()).isEqualTo("t1ID");
     }
+
+    @Test
+    public void shouldAllowOverriddenSchemaPrefix() {
+        // table id with catalog and schema
+        schema = new TableSchemaBuilder(new JdbcValueConverters(), adjuster, customConverterRegistry, SchemaBuilder.struct().build(), false, "override")
+                .create(prefix, "sometopic", table, null, null, null);
+        assertThat(schema).isNotNull();
+        assertThat(schema.keySchema().name()).isEqualTo("override.table.Key");
+        assertThat(schema.valueSchema().name()).isEqualTo("override.table.Value");
+    }
 }
