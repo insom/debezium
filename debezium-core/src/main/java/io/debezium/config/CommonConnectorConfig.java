@@ -237,6 +237,13 @@ public abstract class CommonConnectorConfig {
             .withDescription("Whether field names will be sanitized to Avro naming conventions")
             .withDefault(Boolean.FALSE);
 
+    public static final Field OVERRIDE_SCHEMA_PREFIX = Field.create("override.schema.prefix")
+            .withDisplayName("Prefix to use instead of catalog or schema name")
+            .withType(Type.STRING)
+            .withWidth(Width.SHORT)
+            .withImportance(Importance.LOW)
+            .withDescription("Optional prefix to use for type of before and after fields instead of the detected catalog or schema name.");
+
     public static final Field PROVIDE_TRANSACTION_METADATA = Field.create("provide.transaction.metadata")
             .withDisplayName("Store transaction metadata information in a dedicated topic.")
             .withType(Type.BOOLEAN)
@@ -302,6 +309,7 @@ public abstract class CommonConnectorConfig {
     private final int snapshotFetchSize;
     private final SourceInfoStructMaker<? extends AbstractSourceInfo> sourceInfoStructMaker;
     private final boolean sanitizeFieldNames;
+    private final String overriddenSchemaPrefix;
     private final boolean shouldProvideTransactionMetadata;
     private final EventProcessingFailureHandlingMode eventProcessingFailureHandlingMode;
     private final CustomConverterRegistry customConverterRegistry;
@@ -318,6 +326,7 @@ public abstract class CommonConnectorConfig {
         this.snapshotFetchSize = config.getInteger(SNAPSHOT_FETCH_SIZE, defaultSnapshotFetchSize);
         this.sourceInfoStructMaker = getSourceInfoStructMaker(Version.parse(config.getString(SOURCE_STRUCT_MAKER_VERSION)));
         this.sanitizeFieldNames = config.getBoolean(SANITIZE_FIELD_NAMES) || isUsingAvroConverter(config);
+        this.overriddenSchemaPrefix = config.getString(OVERRIDE_SCHEMA_PREFIX);
         this.shouldProvideTransactionMetadata = config.getBoolean(PROVIDE_TRANSACTION_METADATA);
         this.eventProcessingFailureHandlingMode = EventProcessingFailureHandlingMode.parse(config.getString(EVENT_PROCESSING_FAILURE_HANDLING_MODE));
         this.customConverterRegistry = new CustomConverterRegistry(getCustomConverters());
@@ -398,6 +407,10 @@ public abstract class CommonConnectorConfig {
 
     public boolean getSanitizeFieldNames() {
         return sanitizeFieldNames;
+    }
+
+    public String getOverriddenSchemaPrefix() {
+        return overriddenSchemaPrefix;
     }
 
     public Set<Envelope.Operation> getSkippedOps() {

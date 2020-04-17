@@ -100,7 +100,8 @@ public class MySqlSchema extends RelationalDatabaseSchema {
                         getValueConverters(configuration), SchemaNameAdjuster.create(logger),
                         configuration.customConverterRegistry(),
                         configuration.getSourceInfoStructMaker().schema(),
-                        configuration.getSanitizeFieldNames()),
+                        configuration.getSanitizeFieldNames(),
+                        configuration.getOverriddenSchemaPrefix()),
                 tableIdCaseInsensitive,
                 configuration.getKeyMapper());
 

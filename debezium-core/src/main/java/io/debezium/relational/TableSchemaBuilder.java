@@ -58,6 +58,7 @@ public class TableSchemaBuilder {
     private final Schema sourceInfoSchema;
     private final FieldNamer<Column> fieldNamer;
     private final CustomConverterRegistry customConverterRegistry;
+    private final String overriddenSchemaPrefix;
 
     /**
      * Create a new instance of the builder.
@@ -67,12 +68,13 @@ public class TableSchemaBuilder {
      * @param schemaNameAdjuster the adjuster for schema names; may not be null
      */
     public TableSchemaBuilder(ValueConverterProvider valueConverterProvider, SchemaNameAdjuster schemaNameAdjuster, CustomConverterRegistry customConverterRegistry,
-                              Schema sourceInfoSchema, boolean sanitizeFieldNames) {
+                              Schema sourceInfoSchema, boolean sanitizeFieldNames, String overriddenSchemaPrefix) {
         this.schemaNameAdjuster = schemaNameAdjuster;
         this.valueConverterProvider = valueConverterProvider;
         this.sourceInfoSchema = sourceInfoSchema;
         this.fieldNamer = FieldNameSelector.defaultSelector(sanitizeFieldNames);
         this.customConverterRegistry = customConverterRegistry;
+        this.overriddenSchemaPrefix = overriddenSchemaPrefix;
     }
 
     /**
@@ -146,7 +148,10 @@ public class TableSchemaBuilder {
      * Returns the type schema name for the given table.
      */
     private String tableSchemaName(TableId tableId) {
-        if (Strings.isNullOrEmpty(tableId.catalog())) {
+        if (!Strings.isNullOrEmpty(overriddenSchemaPrefix)) {
+            return overriddenSchemaPrefix + "." + tableId.table();
+        }
+        else if (Strings.isNullOrEmpty(tableId.catalog())) {
             if (Strings.isNullOrEmpty(tableId.schema())) {
                 return tableId.table();
             }
