@@ -292,6 +292,54 @@
                       </assembly>
                     </build>
                   </image>
+                  <image>
+                    <!--
+                    A Docker image using a Percona Server installation
+                    -->
+                    <name>debezium/percona-server-test-database</name>
+                    <run>
+                      <namingStrategy>none</namingStrategy>
+                      <env>
+                        <MYSQL_ROOT_PASSWORD>debezium-rocks</MYSQL_ROOT_PASSWORD>
+                        <MYSQL_USER>${mysql.user}</MYSQL_USER>
+                        <MYSQL_PASSWORD>${mysql.password}</MYSQL_PASSWORD>
+                        <TZ>Pacific/Pago_Pago</TZ>
+                      </env>
+                      <ports>
+                        <port>${mysql.port}:3306</port>
+                      </ports>
+                      <log>
+                        <prefix>percona-server</prefix>
+                        <enabled>true</enabled>
+                        <color>magenta</color>
+                      </log>
+                      <wait>
+                        <log>MySQL init process done. Ready for start up.</log>
+                        <time>${mysql.init.timeout}</time>
+                      </wait>
+                    </run>
+                    <build>
+                      <from>percona/percona-server:${version.mysql.server}</from>
+                      <assembly>
+                        <inline>
+                          <fileSets>
+                            <fileSet>
+                              <directory>${project.basedir}/src/test/docker/server</directory>
+                              <includes>
+                                <include>my.cnf</include>
+                              </includes>
+                              <outputDirectory>etc/mysql</outputDirectory>
+                            </fileSet>
+                            <fileSet>
+                              <directory>${project.basedir}/src/test/docker/init</directory>
+                              <outputDirectory>docker-entrypoint-initdb.d</outputDirectory>
+                            </fileSet>
+                          </fileSets>
+                        </inline>
+                        <targetDir>/</targetDir>
+                      </assembly>
+                    </build>
+                  </image>
                 </images>
               </configuration>
               <!--
@@ -539,6 +587,27 @@
         </properties>
       </profile>
       <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            Use the Docker image for Percona Server.
+            To use, specify "-Dpercona-server" or -Ppercona-server on the Maven command line.
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+            <profile>
+              <id>percona-server</id>
+              <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                  <name>percona-server</name>
+                </property>
+              </activation>
+              <properties>
+                <!-- Docker properties -->
+                <docker.filter>debezium/percona-server-test-database</docker.filter>
+                <!-- Integration test properties -->
+                <database.port>${mysql.port}</database.port>
+                <database.replica.port>${mysql.port}</database.replica.port>
+                <docker.initimage>ln -s /usr/share/zoneinfo/Pacific/Pago_Pago /etc/localtime</docker.initimage>
+              </properties>
+            </profile>
+            <!--  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             Use the Docker image for a MySQL replica of another MySQL server 
             configured to use GTIDs. To use, specify "-Dmysql-replica" 
             or -Pmysql-replica on the Maven command line.
